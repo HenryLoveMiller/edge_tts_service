@@ -32,10 +32,6 @@ class TTSService:
         if voice not in self.SUPPORTED_VOICES:
             raise ValueError(f"Unsupported voice. Please choose from: {list(self.SUPPORTED_VOICES.keys())}")
 
-        static_dir = current_app.config['UPLOAD_FOLDER']
-        output_file = os.path.join(static_dir, filename)
-        self.temp_files.append(output_file)
-
         communicate = edge_tts.Communicate(
             text=text,
             voice=voice,
@@ -43,14 +39,19 @@ class TTSService:
             volume=volume
         )
 
-        await communicate.save(output_file)
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file_path = temp_file.name
+
+        await communicate.save(temp_file_path)
         
         # Upload the file to GitHub
         try:
-            file_url = self.upload_to_github(output_file, filename)
+            file_url = self.upload_to_github(temp_file_path, filename)
         except Exception as e:
             logging.error(f"Failed to upload file to GitHub: {e}")
             raise
+        finally:
+            os.unlink(temp_file_path)
         
         return file_url
 
