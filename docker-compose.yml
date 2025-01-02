@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  tts_service:
+    build: .
+    container_name: tts_service
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      FLASK_ENV: production-or-development
+      SECRET_KEY: your-secret-key
+      TEMP_FILE_DIR: /tmp
+      BASE_URL: http://your-ip:5000
+      GITHUB_TOKEN: your_github_token
+      GITHUB_REPO: your-github-username/your-github-repo
+      GITHUB_BRANCH: your-github-branch
+      GITHUB_FOLDER: your-github-repo-folder-for-storing-audio-files
+    command: gunicorn --bind 0.0.0.0:5000 --workers 4 run:app
