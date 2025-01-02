@@ -76,15 +76,25 @@ class TTSService:
             'Content-Type': 'application/json'
         }
         
+        # Get the SHA of the existing file if it exists
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            sha = response.json()['sha']
+        else:
+            sha = None
+        
         data = {
             'message': f'Add {filename}',
             'content': content,
             'branch': branch
         }
         
+        if sha:
+            data['sha'] = sha
+        
         response = requests.put(url, json=data, headers=headers)
         
-        if response.status_code != 201:
+        if response.status_code not in [200, 201]:
             logging.error(f"GitHub API error: {response.status_code} {response.text}")
             response.raise_for_status()
         
