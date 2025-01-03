@@ -23,14 +23,39 @@ class TTSService:
     def __init__(self):
         self.temp_files = []
 
+    def _get_github_file_info(self, filename):
+        """Helper method to get GitHub file info"""
+        repo = current_app.config['GITHUB_REPO']
+        branch = current_app.config['GITHUB_BRANCH']
+        folder = current_app.config['GITHUB_FOLDER']
+        if folder:
+            url = f"https://api.github.com/repos/{repo}/contents/{folder}/{filename}"
+            raw_file_url = f"https://github.com/{repo}/raw/refs/heads/{branch}/{folder}/{filename}"
+        else:
+            url = f"https://api.github.com/repos/{repo}/contents/{filename}"
+            raw_file_url = f"https://github.com/{repo}/raw/refs/heads/{branch}/{filename}"
+        
+        headers = {
+            'Authorization': f'token {current_app.config['GITHUB_TOKEN']}',
+            'Content-Type': 'application/json'
+        }
+        
+        return url, raw_file_url, headers
+
     async def generate_speech(self, text, filename, voice=None, rate=None, volume=None):
-        """生成语音文件"""
+        """Generate speech file"""
         voice = voice or 'en-US-AriaNeural'
         rate = rate or '+0%'
         volume = volume or '+0%'
 
         if voice not in self.SUPPORTED_VOICES:
             raise ValueError(f"Unsupported voice. Please choose from: {list(self.SUPPORTED_VOICES.keys())}")
+
+        # Check if the file already exists on GitHub
+        file_url = self.check_github_file_exists(filename)
+        if file_url:
+            logging.info(f"File {filename} already exists on GitHub. Returning existing file URL.")
+            return file_url
 
         communicate = edge_tts.Communicate(
             text=text,
@@ -55,42 +80,41 @@ class TTSService:
         
         return file_url
 
-    def upload_to_github(self, file_path, filename):
-        """Upload the file to GitHub and return the raw file URL"""
-        with open(file_path, 'rb') as file:
-            content = base64.b64encode(file.read()).decode('utf-8')
+    def check_github_file_exists(self, filename):
+        """Check if the file already exists on GitHub and return the URL if it does"""
+        url, raw_file_url, headers = self._get_github_file_info(filename)
         
-        repo = current_app.config['GITHUB_REPO']
-        branch = current_app.config['GITHUB_BRANCH']
-        token = current_app.config['GITHUB_TOKEN']
-        folder = current_app.config['GITHUB_FOLDER']
-        if folder:
-            url = f"https://api.github.com/repos/{repo}/contents/{folder}/{filename}"
-            raw_file_url = f"https://github.com/{repo}/raw/refs/heads/{branch}/{folder}/{filename}"
-        else:
-            url = f"https://api.github.com/repos/{repo}/contents/{filename}"
-            raw_file_url = f"https://github.com/{repo}/raw/refs/heads/{branch}/{filename}"
-        
-        headers = {
-            'Authorization': f'token {token}',
-            'Content-Type': 'application/json'
-        }
-        
-        # Get the SHA of the existing file if it exists
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            sha = response.json()['sha']
-        else:
-            sha = None
+            return raw_file_url
+        elif response.status_code != 404:
+            logging.error(f"GitHub API error: {response.status_code} {response.text}")
+            response.raise_for_status()
+        
+        return None
+
+    def upload_to_github(self, file_path, filename):
+        """Upload the file to GitHub and return the raw file URL"""
+        url, raw_file_url, headers = self._get_github_file_info(filename)
+        
+        # Check if the file already exists
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            logging.info(f"File {filename} already exists. Returning existing file URL.")
+            return raw_file_url
+        elif response.status_code != 404:
+            logging.error(f"GitHub API error: {response.status_code} {response.text}")
+            response.raise_for_status()
+        
+        # If the file does not exist, upload it
+        with open(file_path, 'rb') as file:
+            content = base64.b64encode(file.read()).decode('utf-8')
         
         data = {
             'message': f'Add {filename}',
             'content': content,
-            'branch': branch
+            'branch': current_app.config['GITHUB_BRANCH']
         }
-        
-        if sha:
-            data['sha'] = sha
         
         response = requests.put(url, json=data, headers=headers)
         
@@ -101,7 +125,7 @@ class TTSService:
         return raw_file_url
 
     def cleanup(self):
-        """清理临时文件"""
+        """Clean up temporary files"""
         for file_path in self.temp_files:
             try:
                 os.unlink(file_path)
