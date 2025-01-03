@@ -122,13 +122,13 @@ The application can be configured using environment variables. The following var
 
 ### Get Supported Voices
 
-- **URL**: `/api/v1/voices`
+- **URL**: `/voices`
 - **Method**: `GET`
 - **Description**: Retrieve a list of supported voices.
 
 ### Text to Speech
 
-- **URL**: `/api/v1/tts`
+- **URL**: `/tts`
 - **Method**: `POST`
 - **Description**: Convert text to speech and upload the generated audio file to GitHub.
 - **Request Body**:
