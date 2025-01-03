@@ -3,10 +3,10 @@ version: '3.8'
 services:
   tts_service:
     build: .
-    container_name: tts_service
+    container_name: edge_tts
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5002:5000"
     volumes:
       - ./logs:/app/logs
     environment:

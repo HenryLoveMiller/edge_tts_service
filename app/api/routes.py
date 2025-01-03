@@ -1,4 +1,4 @@
-from flask import request, send_file
+from flask import request, redirect, send_file
 from . import api
 from ..services.tts_service import TTSService
 from ..utils.decorators import async_route
@@ -24,6 +24,7 @@ async def text_to_speech():
             voice = request.args.get('voice')
             rate = request.args.get('rate')
             volume = request.args.get('volume')
+            dl = request.args.get('dl')
         elif request.method == 'POST':
             # Get text from POST request JSON data
             data = request.get_json()
@@ -33,6 +34,7 @@ async def text_to_speech():
             voice = data.get('voice')
             rate = data.get('rate')
             volume = data.get('volume')
+            dl = data.get('dl')
         else:
             return {"status": "error", "message": "Method not allowed"}, 405
 
@@ -47,6 +49,11 @@ async def text_to_speech():
             rate=rate,
             volume=volume
         )
+        
+        if dl == '1':
+            return redirect(file_url)
+        elif dl == '2':
+            return redirect(f"{request.host_url}player?filename={filename}")
         
         play_audio_url = f"{request.host_url}player?filename={filename}"
         
@@ -63,7 +70,7 @@ async def text_to_speech():
         logging.error(f"Exception in text_to_speech: {e}")
         return {"status": "error", "message": str(e)}, 500
 
-@api.route('/play_audio', methods=['GET'])
+@api.route('/player', methods=['GET'])
 def play_audio():
     """Play audio file page"""
     filename = request.args.get('filename')
