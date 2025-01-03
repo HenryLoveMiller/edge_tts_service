@@ -25,9 +25,9 @@ class TTSService:
 
     def _get_github_file_info(self, filename):
         """Helper method to get GitHub file info"""
-        repo = current_app.config['GITHUB_REPO']
-        branch = current_app.config['GITHUB_BRANCH']
-        folder = current_app.config['GITHUB_FOLDER']
+        repo = current_app.config["GITHUB_REPO"]
+        branch = current_app.config["GITHUB_BRANCH"]
+        folder = current_app.config["GITHUB_FOLDER"]
         if folder:
             url = f"https://api.github.com/repos/{repo}/contents/{folder}/{filename}"
             raw_file_url = f"https://github.com/{repo}/raw/refs/heads/{branch}/{folder}/{filename}"
@@ -36,8 +36,8 @@ class TTSService:
             raw_file_url = f"https://github.com/{repo}/raw/refs/heads/{branch}/{filename}"
         
         headers = {
-            'Authorization': f'token {current_app.config['GITHUB_TOKEN']}',
-            'Content-Type': 'application/json'
+            "Authorization": f"token {current_app.config['GITHUB_TOKEN']}",
+            "Content-Type": "application/json"
         }
         
         return url, raw_file_url, headers
