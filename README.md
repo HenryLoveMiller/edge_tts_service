@@ -57,7 +57,7 @@ The application can be configured using environment variables. The following var
 4. Run the application:
 
     ```sh
-    flask run
+    python run.py
     ```
 
 ### 2. Docker Deployment
@@ -65,14 +65,14 @@ The application can be configured using environment variables. The following var
 1. Build the Docker image:
 
     ```sh
-    docker build -t tts_service .
+    docker build -t edge_tts .
     ```
 
 2. Run the Docker container with environment variables:
 
     ```sh
-    docker run -d --name tts_service \
-      -p 5000:5000 \
+    docker run -d --name edge_tts \
+      -p 5002:5000 \
       -e FLASK_ENV=production \
       -e SECRET_KEY=your-secret-key \
       -e TEMP_FILE_DIR=/tmp \
@@ -81,7 +81,7 @@ The application can be configured using environment variables. The following var
       -e GITHUB_REPO=your_github_username/your_repository \
       -e GITHUB_BRANCH=your-branch-name \
       -e GITHUB_FOLDER=your-folder-name \
-      tts_service
+      edge_tts
     ```
 
 ### 3. Docker Compose Deployment
@@ -94,10 +94,10 @@ The application can be configured using environment variables. The following var
     services:
       tts_service:
         build: .
-        container_name: tts_service
+        container_name: edge_tts
         restart: unless-stopped
         ports:
-          - "5000:5000"
+          - "5002:5000"
         volumes:
           - ./logs:/app/logs
         environment:
@@ -129,9 +129,15 @@ The application can be configured using environment variables. The following var
 ### Text to Speech
 
 - **URL**: `/tts`
-- **Method**: `POST`
+- **Method**: `GET`, `POST`
 - **Description**: Convert text to speech and upload the generated audio file to GitHub.
-- **Request Body**:
+- **Request Parameters (GET)**:
+    - `text`: The text to convert to speech.
+    - `voice`: The voice to use for the conversion.
+    - `rate`: The rate of speech.
+    - `volume`: The volume of speech.
+    - `dl`: Download option (1 for direct download, 2 for player URL).
+- **Request Body (POST)**:
     ```json
     {
         "text": "Hello, world!",
