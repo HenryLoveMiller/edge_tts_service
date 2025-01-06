@@ -118,6 +118,20 @@ The application can be configured using environment variables. The following var
     docker-compose up -d
     ```
 
+### 4. 部署到Vercel
+
+#### 配置环境变量
+
+在Vercel项目设置中，添加以下环境变量：
+
+- `SECRET_KEY`
+- `TEMP_FILE_DIR`
+- `BASE_URL`
+- `GITHUB_TOKEN`
+- `GITHUB_REPO`
+- `GITHUB_BRANCH`
+- `GITHUB_FOLDER`
+
 ## API Endpoints
 
 ### Get Supported Voices
