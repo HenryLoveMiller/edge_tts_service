@@ -17,7 +17,7 @@ def sanitize_text(text):
 
     return text
 
-def generate_filename(text, char_limit=100):
+def generate_filename(text, char_limit=50):
     """
     从输入文本中截取前几个字符作为文件名，确保正确处理中文字符
     
