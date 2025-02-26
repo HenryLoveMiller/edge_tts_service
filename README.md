@@ -1,11 +1,11 @@
 # Edge TTS Service
 
-Edge TTS Service is a Flask-based web application that provides text-to-speech (TTS) functionality using the Edge TTS library. The generated audio files can be uploaded to a specified GitHub repository.
+Edge TTS Service is a Flask-based web application that provides text-to-speech (TTS) functionality using the Edge TTS library. The generated audio files can be uploaded to a specified GitHub repository or stored locally.
 
 ## Features
 
 - Convert text to speech using various supported voices.
-- Upload generated audio files to a specified GitHub repository.
+- Upload generated audio files to a specified GitHub repository or store them locally.
 - Configurable via environment variables.
 - Supports both synchronous and asynchronous routes.
 
@@ -21,6 +21,8 @@ The application can be configured using environment variables. The following var
 - `GITHUB_REPO`: GitHub repository for storing audio files.
 - `GITHUB_BRANCH`: Branch of the GitHub repository.
 - `GITHUB_FOLDER`: Folder in the GitHub repository for storing audio files.
+- `LOCAL_STORAGE_DIR`: Directory for storing generated audio files locally.
+- `STORAGE_METHOD`: Method for storing files (`local` or `github`).
 
 ## Deployment Methods
 
@@ -52,6 +54,8 @@ The application can be configured using environment variables. The following var
     GITHUB_REPO=your_github_username/your_repository
     GITHUB_BRANCH=your-branch-name
     GITHUB_FOLDER=your-folder-name
+    LOCAL_STORAGE_DIR=/path/to/local/storage
+    STORAGE_METHOD=local
     ```
 
 4. Run the application:
@@ -81,6 +85,7 @@ The application can be configured using environment variables. The following var
       -e GITHUB_REPO=your_github_username/your_repository \
       -e GITHUB_BRANCH=your-branch-name \
       -e GITHUB_FOLDER=your-folder-name \
+      -e STORAGE_METHOD=local \
       edge_tts
     ```
 
@@ -109,6 +114,7 @@ The application can be configured using environment variables. The following var
           GITHUB_REPO: your_github_username/your_repository
           GITHUB_BRANCH: your-branch-name
           GITHUB_FOLDER: your-folder-name
+          STORAGE_METHOD: local
         command: gunicorn --bind 0.0.0.0:5000 --workers 4 run:app
     ```
 
@@ -131,6 +137,7 @@ The application can be configured using environment variables. The following var
 - `GITHUB_REPO`
 - `GITHUB_BRANCH`
 - `GITHUB_FOLDER`
+- `STORAGE_METHOD`
 
 ## API Endpoints
 
@@ -144,7 +151,7 @@ The application can be configured using environment variables. The following var
 
 - **URL**: `/tts`
 - **Method**: `GET`, `POST`
-- **Description**: Convert text to speech and upload the generated audio file to GitHub.
+- **Description**: Convert text to speech and upload the generated audio file to GitHub or store it locally.
 - **Request Parameters (GET)**:
     - `text`: The text to convert to speech.
     - `voice`: The voice to use for the conversion.

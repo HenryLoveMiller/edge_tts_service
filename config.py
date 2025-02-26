@@ -13,6 +13,8 @@ class Config:
     GITHUB_REPO = os.getenv('GITHUB_REPO')
     GITHUB_BRANCH = os.getenv('GITHUB_BRANCH', 'main')
     GITHUB_FOLDER = os.getenv('GITHUB_FOLDER', '')
+    LOCAL_STORAGE_DIR = os.getenv('LOCAL_STORAGE_DIR', '/app/audio_files')
+    STORAGE_METHOD = os.getenv('STORAGE_METHOD', 'local')
 
 class DevelopmentConfig(Config):
     DEBUG = True

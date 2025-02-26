@@ -1,6 +1,7 @@
-from flask import request, redirect, send_file
+from flask import request, redirect, send_file, current_app
 from . import api
 from ..services.tts_service import TTSService
+from ..services.github_service import GitHubService
 from ..utils.decorators import async_route
 from ..utils.text_utils import generate_filename
 import logging
@@ -42,25 +43,29 @@ async def text_to_speech():
         filename = f"{generate_filename(text)}.mp3"
         
         tts_service = TTSService()
-        file_url = await tts_service.generate_speech(
+        local_file_path = await tts_service.generate_speech(
             text=text,
             filename=filename,
             voice=voice,
             rate=rate,
             volume=volume
         )
-        
+
         if dl == '1':
-            return redirect(file_url)
+            return send_file(local_file_path, as_attachment=True)
         elif dl == '2':
             return redirect(f"{request.host_url}player?filename={filename}")
-        
-        play_audio_url = f"{request.host_url}player?filename={filename}"
-        
+
+        storage_method = current_app.config['STORAGE_METHOD']
+        if storage_method == 'github':
+            play_audio_url = f"{request.host_url}player?filename={filename}"
+        else:
+            play_audio_url = f"{request.host_url}static/audio/{filename}"
+
         return {
             "status": "success",
-            "file_url": file_url,
-            "play_audio_url": play_audio_url  # Include player URL in the response
+            "file_path": local_file_path,
+            "play_audio_url": play_audio_url
         }
         
     except ValueError as e:
@@ -77,8 +82,7 @@ def play_audio():
     if not filename:
         return {"status": "error", "message": "Missing required parameter: filename"}, 400
 
-    tts_service = TTSService()
-    raw_file_url = tts_service.check_github_file_exists(filename)
+    raw_file_url = GitHubService.check_github_file_exists(filename)
     if not raw_file_url:
         return {"status": "error", "message": "File not found on GitHub"}, 404
 

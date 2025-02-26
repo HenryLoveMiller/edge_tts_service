@@ -18,4 +18,6 @@ services:
       GITHUB_REPO: your-github-username/your-github-repo
       GITHUB_BRANCH: your-github-branch
       GITHUB_FOLDER: your-github-repo-folder-for-storing-audio-files
+      STORAGE_METHOD: github
+      LOCAL_STORAGE_DIR: /app/audio_files
     command: gunicorn --bind 0.0.0.0:5000 --workers 4 run:app
